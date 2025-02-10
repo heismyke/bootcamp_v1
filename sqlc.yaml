@@ -1,0 +1,12 @@
+version: "1"
+packages: 
+  - name : "database"
+    path: "./internal/database/sqlc"               # Path where sqlc will generate Go code
+    queries: "./internal/database/query/"          # Path to your SQL queries
+    schema: "./internal/database/migration/"       # Path to your schema migrations
+    engine: "postgresql"
+    emit_json_tags: true            # Emit JSON tags in structs
+    emit_prepared_queries: false   # Disable prepared queries generation
+    emit_interface: false          # Do not generate interfaces
+    emit_exact_table_names: true   # Use exact table names in Go structs
+
