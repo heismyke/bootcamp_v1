@@ -8,15 +8,12 @@ package database
 import (
 	"context"
 	"database/sql"
-	"time"
 )
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (
-  name, email, role, password
-) VALUES (
-  $1, $2, $3, $4
-)RETURNING id, created_at, id, name, email, role, password, reset_password_token, reset_password_expire, confirm_email_token, is_email_confirmed, two_factor_code, two_factor_code_expire, two_factor_enable, created_at
+INSERT INTO users (name, email, role, password)
+VALUES ($1, $2, $3, $4)
+RETURNING id, created_at, name, email, role, password
 `
 
 type CreateUserParams struct {
@@ -27,21 +24,12 @@ type CreateUserParams struct {
 }
 
 type CreateUserRow struct {
-	ID                  int64        `json:"id"`
-	CreatedAt           sql.NullTime `json:"created_at"`
-	ID_2                int64        `json:"id_2"`
-	Name                string       `json:"name"`
-	Email               string       `json:"email"`
-	Role                UserRole     `json:"role"`
-	Password            string       `json:"password"`
-	ResetPasswordToken  string       `json:"reset_password_token"`
-	ResetPasswordExpire time.Time    `json:"reset_password_expire"`
-	ConfirmEmailToken   string       `json:"confirm_email_token"`
-	IsEmailConfirmed    bool         `json:"is_email_confirmed"`
-	TwoFactorCode       string       `json:"two_factor_code"`
-	TwoFactorCodeExpire time.Time    `json:"two_factor_code_expire"`
-	TwoFactorEnable     bool         `json:"two_factor_enable"`
-	CreatedAt_2         sql.NullTime `json:"created_at_2"`
+	ID        int64        `json:"id"`
+	CreatedAt sql.NullTime `json:"created_at"`
+	Name      string       `json:"name"`
+	Email     string       `json:"email"`
+	Role      UserRole     `json:"role"`
+	Password  string       `json:"password"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error) {
@@ -55,19 +43,10 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateU
 	err := row.Scan(
 		&i.ID,
 		&i.CreatedAt,
-		&i.ID_2,
 		&i.Name,
 		&i.Email,
 		&i.Role,
 		&i.Password,
-		&i.ResetPasswordToken,
-		&i.ResetPasswordExpire,
-		&i.ConfirmEmailToken,
-		&i.IsEmailConfirmed,
-		&i.TwoFactorCode,
-		&i.TwoFactorCodeExpire,
-		&i.TwoFactorEnable,
-		&i.CreatedAt_2,
 	)
 	return i, err
 }
@@ -83,7 +62,7 @@ func (q *Queries) DeleteUser(ctx context.Context, id int64) error {
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, name, email, role, password, reset_password_token, reset_password_expire, confirm_email_token, is_email_confirmed, two_factor_code, two_factor_code_expire, two_factor_enable, created_at FROM users
+SELECT id, name, email, role, password, created_at FROM users
 WHERE id = $1 LIMIT 1
 `
 
@@ -96,20 +75,13 @@ func (q *Queries) GetUser(ctx context.Context, id int64) (Users, error) {
 		&i.Email,
 		&i.Role,
 		&i.Password,
-		&i.ResetPasswordToken,
-		&i.ResetPasswordExpire,
-		&i.ConfirmEmailToken,
-		&i.IsEmailConfirmed,
-		&i.TwoFactorCode,
-		&i.TwoFactorCodeExpire,
-		&i.TwoFactorEnable,
 		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const listUsers = `-- name: ListUsers :many
-SELECT id, name, email, role, password, reset_password_token, reset_password_expire, confirm_email_token, is_email_confirmed, two_factor_code, two_factor_code_expire, two_factor_enable, created_at FROM users
+SELECT id, name, email, role, password, created_at FROM users
 ORDER BY id
 LIMIT $1
 OFFSET $2
@@ -135,13 +107,6 @@ func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]Users, 
 			&i.Email,
 			&i.Role,
 			&i.Password,
-			&i.ResetPasswordToken,
-			&i.ResetPasswordExpire,
-			&i.ConfirmEmailToken,
-			&i.IsEmailConfirmed,
-			&i.TwoFactorCode,
-			&i.TwoFactorCodeExpire,
-			&i.TwoFactorEnable,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
@@ -164,7 +129,7 @@ UPDATE users
       role = $4,
       password = $5
 WHERE id = $1
-RETURNING id, name, email, role, password, reset_password_token, reset_password_expire, confirm_email_token, is_email_confirmed, two_factor_code, two_factor_code_expire, two_factor_enable, created_at
+RETURNING id, name, email, role, password, created_at
 `
 
 type UpdateUserParams struct {
@@ -190,13 +155,6 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (Users, 
 		&i.Email,
 		&i.Role,
 		&i.Password,
-		&i.ResetPasswordToken,
-		&i.ResetPasswordExpire,
-		&i.ConfirmEmailToken,
-		&i.IsEmailConfirmed,
-		&i.TwoFactorCode,
-		&i.TwoFactorCodeExpire,
-		&i.TwoFactorEnable,
 		&i.CreatedAt,
 	)
 	return i, err

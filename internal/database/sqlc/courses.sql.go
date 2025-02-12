@@ -7,15 +7,14 @@ package database
 
 import (
 	"context"
-	"database/sql"
 )
 
 const createCourse = `-- name: CreateCourse :one
 INSERT INTO courses (
-  title, description, weeks, tuition, minimum_skill, scholarship_available,bootcamp_id
+  title, description, weeks, tuition, minimum_skill, scholarship_available,bootcamp_id, user_id
 ) VALUES (
-  $1, $2, $3, $4, $5, $6, $7
-)RETURNING id, created_at
+  $1, $2, $3, $4, $5, $6, $7, $8
+)RETURNING id, title, description, weeks, tuition, minimum_skill, scholarship_available, bootcamp_id, user_id, created_at
 `
 
 type CreateCourseParams struct {
@@ -26,14 +25,10 @@ type CreateCourseParams struct {
 	MinimumSkill         MinimumSkill `json:"minimum_skill"`
 	ScholarshipAvailable bool         `json:"scholarship_available"`
 	BootcampID           int64        `json:"bootcamp_id"`
+	UserID               int64        `json:"user_id"`
 }
 
-type CreateCourseRow struct {
-	ID        int64        `json:"id"`
-	CreatedAt sql.NullTime `json:"created_at"`
-}
-
-func (q *Queries) CreateCourse(ctx context.Context, arg CreateCourseParams) (CreateCourseRow, error) {
+func (q *Queries) CreateCourse(ctx context.Context, arg CreateCourseParams) (Courses, error) {
 	row := q.db.QueryRowContext(ctx, createCourse,
 		arg.Title,
 		arg.Description,
@@ -42,9 +37,21 @@ func (q *Queries) CreateCourse(ctx context.Context, arg CreateCourseParams) (Cre
 		arg.MinimumSkill,
 		arg.ScholarshipAvailable,
 		arg.BootcampID,
+		arg.UserID,
 	)
-	var i CreateCourseRow
-	err := row.Scan(&i.ID, &i.CreatedAt)
+	var i Courses
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Description,
+		&i.Weeks,
+		&i.Tuition,
+		&i.MinimumSkill,
+		&i.ScholarshipAvailable,
+		&i.BootcampID,
+		&i.UserID,
+		&i.CreatedAt,
+	)
 	return i, err
 }
 
@@ -59,7 +66,7 @@ func (q *Queries) DeleteCourse(ctx context.Context, id int64) error {
 }
 
 const getCourse = `-- name: GetCourse :one
-SELECT id, title, description, weeks, tuition, minimum_skill, scholarship_available, bootcamp_id, created_at FROM courses
+SELECT id, title, description, weeks, tuition, minimum_skill, scholarship_available, bootcamp_id, user_id, created_at FROM courses
 WHERE id = $1 LIMIT 1
 `
 
@@ -75,13 +82,14 @@ func (q *Queries) GetCourse(ctx context.Context, id int64) (Courses, error) {
 		&i.MinimumSkill,
 		&i.ScholarshipAvailable,
 		&i.BootcampID,
+		&i.UserID,
 		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const listCourses = `-- name: ListCourses :many
-SELECT id, title, description, weeks, tuition, minimum_skill, scholarship_available, bootcamp_id, created_at FROM courses
+SELECT id, title, description, weeks, tuition, minimum_skill, scholarship_available, bootcamp_id, user_id, created_at FROM courses
 ORDER BY id
 LIMIT $1
 OFFSET $2
@@ -110,6 +118,7 @@ func (q *Queries) ListCourses(ctx context.Context, arg ListCoursesParams) ([]Cou
 			&i.MinimumSkill,
 			&i.ScholarshipAvailable,
 			&i.BootcampID,
+			&i.UserID,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
@@ -132,10 +141,9 @@ UPDATE courses
       weeks = $4,
       tuition = $5,
       minimum_skill = $6,
-      scholarship_available = $7,
-      bootcamp_id = $8
+      scholarship_available = $7
 WHERE id = $1
-RETURNING id, title, description, weeks, tuition, minimum_skill, scholarship_available, bootcamp_id, created_at
+RETURNING id, title, description, weeks, tuition, minimum_skill, scholarship_available, bootcamp_id, user_id, created_at
 `
 
 type UpdateCourseParams struct {
@@ -146,7 +154,6 @@ type UpdateCourseParams struct {
 	Tuition              string       `json:"tuition"`
 	MinimumSkill         MinimumSkill `json:"minimum_skill"`
 	ScholarshipAvailable bool         `json:"scholarship_available"`
-	BootcampID           int64        `json:"bootcamp_id"`
 }
 
 func (q *Queries) UpdateCourse(ctx context.Context, arg UpdateCourseParams) (Courses, error) {
@@ -158,7 +165,6 @@ func (q *Queries) UpdateCourse(ctx context.Context, arg UpdateCourseParams) (Cou
 		arg.Tuition,
 		arg.MinimumSkill,
 		arg.ScholarshipAvailable,
-		arg.BootcampID,
 	)
 	var i Courses
 	err := row.Scan(
@@ -170,6 +176,7 @@ func (q *Queries) UpdateCourse(ctx context.Context, arg UpdateCourseParams) (Cou
 		&i.MinimumSkill,
 		&i.ScholarshipAvailable,
 		&i.BootcampID,
+		&i.UserID,
 		&i.CreatedAt,
 	)
 	return i, err

@@ -1,9 +1,9 @@
 -- name: CreateCourse :one
 INSERT INTO courses (
-  title, description, weeks, tuition, minimum_skill, scholarship_available,bootcamp_id
+  title, description, weeks, tuition, minimum_skill, scholarship_available,bootcamp_id, user_id
 ) VALUES (
-  $1, $2, $3, $4, $5, $6, $7
-)RETURNING id, created_at;
+  $1, $2, $3, $4, $5, $6, $7, $8
+)RETURNING *;
 
 -- name: ListCourses :many
 SELECT * FROM courses
@@ -22,8 +22,7 @@ UPDATE courses
       weeks = $4,
       tuition = $5,
       minimum_skill = $6,
-      scholarship_available = $7,
-      bootcamp_id = $8
+      scholarship_available = $7
 WHERE id = $1
 RETURNING *;
 

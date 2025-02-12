@@ -13,40 +13,28 @@ import (
 
 const createBootcamp = `-- name: CreateBootcamp :one
 INSERT INTO bootcamps (
-  user_id, name, slug, description, website, phone, email, address, latitude, longitude, location_details, careers, average_rating, average_cost, photo, housing, job_assistance, job_guarantee, accept_gi
+  user_id, name, slug, description, website, phone, email, address,careers, job_assistance, job_guarantee, accept_gi
 ) VALUES (
-  $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19
-) RETURNING id, created_at
+  $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
+) RETURNING id, user_id, name, slug, description, website, phone, email, address, careers, job_assistance, job_guarantee, accept_gi, created_at
 `
 
 type CreateBootcampParams struct {
-	UserID          sql.NullInt64   `json:"user_id"`
-	Name            string          `json:"name"`
-	Slug            sql.NullString  `json:"slug"`
-	Description     string          `json:"description"`
-	Website         string          `json:"website"`
-	Phone           string          `json:"phone"`
-	Email           string          `json:"email"`
-	Address         string          `json:"address"`
-	Latitude        string          `json:"latitude"`
-	Longitude       string          `json:"longitude"`
-	LocationDetails json.RawMessage `json:"location_details"`
-	Careers         json.RawMessage `json:"careers"`
-	AverageRating   string          `json:"average_rating"`
-	AverageCost     string          `json:"average_cost"`
-	Photo           string          `json:"photo"`
-	Housing         bool            `json:"housing"`
-	JobAssistance   bool            `json:"job_assistance"`
-	JobGuarantee    bool            `json:"job_guarantee"`
-	AcceptGi        bool            `json:"accept_gi"`
+	UserID        sql.NullInt64   `json:"user_id"`
+	Name          string          `json:"name"`
+	Slug          sql.NullString  `json:"slug"`
+	Description   string          `json:"description"`
+	Website       string          `json:"website"`
+	Phone         string          `json:"phone"`
+	Email         string          `json:"email"`
+	Address       string          `json:"address"`
+	Careers       json.RawMessage `json:"careers"`
+	JobAssistance bool            `json:"job_assistance"`
+	JobGuarantee  bool            `json:"job_guarantee"`
+	AcceptGi      bool            `json:"accept_gi"`
 }
 
-type CreateBootcampRow struct {
-	ID        int64        `json:"id"`
-	CreatedAt sql.NullTime `json:"created_at"`
-}
-
-func (q *Queries) CreateBootcamp(ctx context.Context, arg CreateBootcampParams) (CreateBootcampRow, error) {
+func (q *Queries) CreateBootcamp(ctx context.Context, arg CreateBootcampParams) (Bootcamps, error) {
 	row := q.db.QueryRowContext(ctx, createBootcamp,
 		arg.UserID,
 		arg.Name,
@@ -56,20 +44,28 @@ func (q *Queries) CreateBootcamp(ctx context.Context, arg CreateBootcampParams) 
 		arg.Phone,
 		arg.Email,
 		arg.Address,
-		arg.Latitude,
-		arg.Longitude,
-		arg.LocationDetails,
 		arg.Careers,
-		arg.AverageRating,
-		arg.AverageCost,
-		arg.Photo,
-		arg.Housing,
 		arg.JobAssistance,
 		arg.JobGuarantee,
 		arg.AcceptGi,
 	)
-	var i CreateBootcampRow
-	err := row.Scan(&i.ID, &i.CreatedAt)
+	var i Bootcamps
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Name,
+		&i.Slug,
+		&i.Description,
+		&i.Website,
+		&i.Phone,
+		&i.Email,
+		&i.Address,
+		&i.Careers,
+		&i.JobAssistance,
+		&i.JobGuarantee,
+		&i.AcceptGi,
+		&i.CreatedAt,
+	)
 	return i, err
 }
 
@@ -84,7 +80,7 @@ func (q *Queries) DeleteBootcamp(ctx context.Context, id int64) error {
 }
 
 const getBootcamp = `-- name: GetBootcamp :one
-SELECT id, user_id, name, slug, description, website, phone, email, address, latitude, longitude, location_details, careers, average_rating, average_cost, photo, housing, job_assistance, job_guarantee, accept_gi, created_at FROM bootcamps
+SELECT id, user_id, name, slug, description, website, phone, email, address, careers, job_assistance, job_guarantee, accept_gi, created_at FROM bootcamps
 WHERE id = $1 LIMIT 1
 `
 
@@ -101,14 +97,7 @@ func (q *Queries) GetBootcamp(ctx context.Context, id int64) (Bootcamps, error) 
 		&i.Phone,
 		&i.Email,
 		&i.Address,
-		&i.Latitude,
-		&i.Longitude,
-		&i.LocationDetails,
 		&i.Careers,
-		&i.AverageRating,
-		&i.AverageCost,
-		&i.Photo,
-		&i.Housing,
 		&i.JobAssistance,
 		&i.JobGuarantee,
 		&i.AcceptGi,
@@ -118,7 +107,7 @@ func (q *Queries) GetBootcamp(ctx context.Context, id int64) (Bootcamps, error) 
 }
 
 const listBootcamps = `-- name: ListBootcamps :many
-SELECT id, user_id, name, slug, description, website, phone, email, address, latitude, longitude, location_details, careers, average_rating, average_cost, photo, housing, job_assistance, job_guarantee, accept_gi, created_at FROM bootcamps
+SELECT id, user_id, name, slug, description, website, phone, email, address, careers, job_assistance, job_guarantee, accept_gi, created_at FROM bootcamps
 ORDER BY id
 LIMIT $1
 OFFSET $2
@@ -148,14 +137,7 @@ func (q *Queries) ListBootcamps(ctx context.Context, arg ListBootcampsParams) ([
 			&i.Phone,
 			&i.Email,
 			&i.Address,
-			&i.Latitude,
-			&i.Longitude,
-			&i.LocationDetails,
 			&i.Careers,
-			&i.AverageRating,
-			&i.AverageCost,
-			&i.Photo,
-			&i.Housing,
 			&i.JobAssistance,
 			&i.JobGuarantee,
 			&i.AcceptGi,
@@ -176,56 +158,39 @@ func (q *Queries) ListBootcamps(ctx context.Context, arg ListBootcampsParams) ([
 
 const updateBootcamp = `-- name: UpdateBootcamp :one
 UPDATE bootcamps
-  SET user_id = $2,
-      name = $3,
-      slug = $4,
-      description = $5,
-      website = $6,
-      phone = $7,
-      email = $8,
-      address = $9,
-      latitude = $10,
-      longitude = $11,
-      location_details = $12,
-      careers = $13,
-      average_rating = $14,
-      average_cost = $15,
-      photo = $16,
-      housing = $17,
-      job_assistance = $18,
-      job_guarantee = $19,
-      accept_gi = $20
+  SET name = $2,
+      slug = $3,
+      description = $4,
+      website = $5,
+      phone = $6,
+      email = $7,
+      address = $8,
+      careers = $9,
+      job_assistance = $10,
+      job_guarantee = $11,
+      accept_gi = $12
 WHERE id = $1
-RETURNING id, user_id, name, slug, description, website, phone, email, address, latitude, longitude, location_details, careers, average_rating, average_cost, photo, housing, job_assistance, job_guarantee, accept_gi, created_at
+RETURNING id, user_id, name, slug, description, website, phone, email, address, careers, job_assistance, job_guarantee, accept_gi, created_at
 `
 
 type UpdateBootcampParams struct {
-	ID              int64           `json:"id"`
-	UserID          sql.NullInt64   `json:"user_id"`
-	Name            string          `json:"name"`
-	Slug            sql.NullString  `json:"slug"`
-	Description     string          `json:"description"`
-	Website         string          `json:"website"`
-	Phone           string          `json:"phone"`
-	Email           string          `json:"email"`
-	Address         string          `json:"address"`
-	Latitude        string          `json:"latitude"`
-	Longitude       string          `json:"longitude"`
-	LocationDetails json.RawMessage `json:"location_details"`
-	Careers         json.RawMessage `json:"careers"`
-	AverageRating   string          `json:"average_rating"`
-	AverageCost     string          `json:"average_cost"`
-	Photo           string          `json:"photo"`
-	Housing         bool            `json:"housing"`
-	JobAssistance   bool            `json:"job_assistance"`
-	JobGuarantee    bool            `json:"job_guarantee"`
-	AcceptGi        bool            `json:"accept_gi"`
+	ID            int64           `json:"id"`
+	Name          string          `json:"name"`
+	Slug          sql.NullString  `json:"slug"`
+	Description   string          `json:"description"`
+	Website       string          `json:"website"`
+	Phone         string          `json:"phone"`
+	Email         string          `json:"email"`
+	Address       string          `json:"address"`
+	Careers       json.RawMessage `json:"careers"`
+	JobAssistance bool            `json:"job_assistance"`
+	JobGuarantee  bool            `json:"job_guarantee"`
+	AcceptGi      bool            `json:"accept_gi"`
 }
 
 func (q *Queries) UpdateBootcamp(ctx context.Context, arg UpdateBootcampParams) (Bootcamps, error) {
 	row := q.db.QueryRowContext(ctx, updateBootcamp,
 		arg.ID,
-		arg.UserID,
 		arg.Name,
 		arg.Slug,
 		arg.Description,
@@ -233,14 +198,7 @@ func (q *Queries) UpdateBootcamp(ctx context.Context, arg UpdateBootcampParams) 
 		arg.Phone,
 		arg.Email,
 		arg.Address,
-		arg.Latitude,
-		arg.Longitude,
-		arg.LocationDetails,
 		arg.Careers,
-		arg.AverageRating,
-		arg.AverageCost,
-		arg.Photo,
-		arg.Housing,
 		arg.JobAssistance,
 		arg.JobGuarantee,
 		arg.AcceptGi,
@@ -256,14 +214,7 @@ func (q *Queries) UpdateBootcamp(ctx context.Context, arg UpdateBootcampParams) 
 		&i.Phone,
 		&i.Email,
 		&i.Address,
-		&i.Latitude,
-		&i.Longitude,
-		&i.LocationDetails,
 		&i.Careers,
-		&i.AverageRating,
-		&i.AverageCost,
-		&i.Photo,
-		&i.Housing,
 		&i.JobAssistance,
 		&i.JobGuarantee,
 		&i.AcceptGi,

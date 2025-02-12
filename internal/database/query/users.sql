@@ -1,9 +1,8 @@
 -- name: CreateUser :one
-INSERT INTO users (
-  name, email, role, password
-) VALUES (
-  $1, $2, $3, $4
-)RETURNING id, created_at, *;
+INSERT INTO users (name, email, role, password)
+VALUES ($1, $2, $3, $4)
+RETURNING id, created_at, name, email, role, password;
+
 
 -- name: ListUsers :many
 SELECT * FROM users

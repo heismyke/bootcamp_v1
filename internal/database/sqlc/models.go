@@ -9,7 +9,6 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
-	"time"
 )
 
 type MinimumSkill string
@@ -109,23 +108,12 @@ type Bootcamps struct {
 	Phone   string `json:"phone"`
 	Email   string `json:"email"`
 	Address string `json:"address"`
-	// Latitude value (-90 to 90)
-	Latitude string `json:"latitude"`
-	// Longitude value (-180 to 180)
-	Longitude string `json:"longitude"`
-	// Stores city, state, country
-	LocationDetails json.RawMessage `json:"location_details"`
 	// List of career paths offered
-	Careers json.RawMessage `json:"careers"`
-	// Min: 1, Max: 10
-	AverageRating string       `json:"average_rating"`
-	AverageCost   string       `json:"average_cost"`
-	Photo         string       `json:"photo"`
-	Housing       bool         `json:"housing"`
-	JobAssistance bool         `json:"job_assistance"`
-	JobGuarantee  bool         `json:"job_guarantee"`
-	AcceptGi      bool         `json:"accept_gi"`
-	CreatedAt     sql.NullTime `json:"created_at"`
+	Careers       json.RawMessage `json:"careers"`
+	JobAssistance bool            `json:"job_assistance"`
+	JobGuarantee  bool            `json:"job_guarantee"`
+	AcceptGi      bool            `json:"accept_gi"`
+	CreatedAt     sql.NullTime    `json:"created_at"`
 }
 
 type Courses struct {
@@ -138,6 +126,7 @@ type Courses struct {
 	MinimumSkill         MinimumSkill `json:"minimum_skill"`
 	ScholarshipAvailable bool         `json:"scholarship_available"`
 	BootcampID           int64        `json:"bootcamp_id"`
+	UserID               int64        `json:"user_id"`
 	CreatedAt            sql.NullTime `json:"created_at"`
 }
 
@@ -147,14 +136,7 @@ type Users struct {
 	// Must be a valid email
 	Email string `json:"email"`
 	// Allowed values: user, publisher
-	Role                UserRole     `json:"role"`
-	Password            string       `json:"password"`
-	ResetPasswordToken  string       `json:"reset_password_token"`
-	ResetPasswordExpire time.Time    `json:"reset_password_expire"`
-	ConfirmEmailToken   string       `json:"confirm_email_token"`
-	IsEmailConfirmed    bool         `json:"is_email_confirmed"`
-	TwoFactorCode       string       `json:"two_factor_code"`
-	TwoFactorCodeExpire time.Time    `json:"two_factor_code_expire"`
-	TwoFactorEnable     bool         `json:"two_factor_enable"`
-	CreatedAt           sql.NullTime `json:"created_at"`
+	Role      UserRole     `json:"role"`
+	Password  string       `json:"password"`
+	CreatedAt sql.NullTime `json:"created_at"`
 }
