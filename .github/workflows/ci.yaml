@@ -2,6 +2,7 @@
 # This workflow will build a golang project
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
 
+
 name: ci-test
 
 on:
@@ -9,24 +10,24 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
-  
-jobs:
 
+jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:17
+        image: postgres:17-alpine
         env:
           POSTGRES_USER: root
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: devcamper
         options: >-
-          --health-cmd pg_isready
+          --health-cmd pg_isready -U root
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+
     steps:
     - uses: actions/checkout@v4
 
@@ -34,15 +35,31 @@ jobs:
       uses: actions/setup-go@v4
       with:
         go-version: '1.23.3'
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@v4
-    
+
     - name: Install golang-migrate
       run: |
         curl -L https://github.com/golang-migrate/migrate/releases/download/v4.18.2/migrate.linux-amd64.tar.gz | tar xvz
         sudo mv migrate /usr/local/bin/
         which migrate
+
+    - name: Wait for PostgreSQL to be ready
+      run: |
+        until pg_isready -h localhost -p 5432 -U root; do
+          echo "Waiting for database...";
+          sleep 2;
+        done
+
     - name: Run migrations
       run: make migrateup
+      env:
+        POSTGRES_USER: root
+        POSTGRES_PASSWORD: postgres
+        POSTGRES_DB: devcamper
+        PGHOST: localhost
+        PGPORT: 5432
+
     - name: Test
       run: make test
+      env:
+        PO
+
