@@ -20,14 +20,13 @@ jobs:
         image: postgres:17-alpine
         env:
           POSTGRES_USER: root
-          POSTGRES_PASSWORD: postgres
+          POSTGRES_PASSWORD: MikeSera2022
           POSTGRES_DB: devcamper
         options: >-
-          --health-cmd pg_isready -U root
+          --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-
     steps:
     - uses: actions/checkout@v4
 
@@ -42,18 +41,11 @@ jobs:
         sudo mv migrate /usr/local/bin/
         which migrate
 
-    - name: Wait for PostgreSQL to be ready
-      run: |
-        until pg_isready -h localhost -p 5432 -U root; do
-          echo "Waiting for database...";
-          sleep 2;
-        done
-
     - name: Run migrations
       run: make migrateup
       env:
         POSTGRES_USER: root
-        POSTGRES_PASSWORD: postgres
+        POSTGRES_PASSWORD: MikeSera2022
         POSTGRES_DB: devcamper
         PGHOST: localhost
         PGPORT: 5432
