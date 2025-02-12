@@ -27,6 +27,8 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+        ports:
+          - 5432:5432
     steps:
     - uses: actions/checkout@v4
 
@@ -47,10 +49,8 @@ jobs:
         POSTGRES_USER: root
         POSTGRES_PASSWORD: MikeSera2022
         POSTGRES_DB: devcamper
-        PGHOST: localhost
+        PGHOST: postgres  # Corrected hostname
         PGPORT: 5432
 
     - name: Test
       run: make test
-      
-
