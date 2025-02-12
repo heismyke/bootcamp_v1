@@ -14,12 +14,7 @@ run:
 	@go run cmd/api/main.go
 # Create DB container
 docker-run:
-	@if docker compose up 2>/dev/null; then \
-		: ; \
-	else \
-		echo "Falling back to Docker Compose V1"; \
-		docker-compose down; \
-	fi
+	docker run --name postgres17 -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=MikeSera2022 -d postgres:17-alpine	
 # Shutdown DB container
 docker-down:
 	@if docker compose down 2>/dev/null; then \
